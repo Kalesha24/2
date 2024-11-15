@@ -1,0 +1,95 @@
+name: Install
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Environment"
+        required: true
+        type: environment
+        default: "beta"
+      ref:
+        description: "Branch/tag/SHA of digitraffic-rail-private"
+        required: true
+        default: "master"
+      app:
+        description: Application
+        required: true
+        type: choice
+        options:
+          - server
+          - updater
+      config-repo-branch:
+        description: "Config repo branch"
+        default: master
+        required: true
+        type: string
+jobs:
+  install:
+    if: github.repository != 'tmfg/digitraffic-rail'
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
+    environment: ${{ github.event.inputs.env }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: corretto
+          cache: maven
+      - name: Checkout CI-repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.CONFIG_REPO_NAME }}
+          ssh-key: ${{ secrets.CONFIG_REPO_SSH_KEY }}
+          ref: ${{ inputs.config-repo-branch }}
+          path: config
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-session-name: gh-actions-install-rail-${{ github.event.inputs.env }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Set capitalized app variable
+        run: |
+          APP_CAPITALIZED=$(echo ${{ github.event.inputs.app }} | awk '{print toupper(substr($0, 0, 1)) substr($0, 2)}')
+          echo "APP_CAPITALIZED=$APP_CAPITALIZED" >> $GITHUB_ENV
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build ${{ github.event.inputs.app }}
+        run: |
+          mvn install -DskipTests=true -Ddependency-check.skip=true
+          cp AvoinData${{ env.APP_CAPITALIZED }}/target/AvoinData${{ env.APP_CAPITALIZED }}-*-SNAPSHOT.jar config/aws/app.jar
+          cd config/aws
+          docker buildx build \
+            --no-cache \
+            --build-arg ENV=${{ github.event.inputs.env }} \
+            --build-arg JAR_FILE=app.jar \
+            --build-arg PROPERTY_FILE=conf/avoindata${{ github.event.inputs.app }}-${{ github.event.inputs.env }}.properties \
+            --build-arg LOGCONF_FILE=conf/avoindata${{ github.event.inputs.app }}-logback.xml \
+            --platform linux/arm64 \
+            --output type=docker \
+            --tag ${{ secrets.ECR_URL }}/avoindata-${{ github.event.inputs.app }}:${GITHUB_SHA} \
+            --pull=true \
+            --file=docker/Dockerfile-rail-avoindata${{ github.event.inputs.app }} .
+          
+          docker push ${{ secrets.ECR_URL }}/avoindata-${{ github.event.inputs.app }}:${GITHUB_SHA}
+      - name: Notify Slack
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: FAILED Rail Install ${{ github.event.inputs.app }} to ${{ github.event.inputs.env }}
+          fields: repo, job, took
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

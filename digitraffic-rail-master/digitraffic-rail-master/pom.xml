@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fi.livi.rata.avoindata</groupId>
+    <artifactId>avoindata</artifactId>
+    <version>0.2.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>AvoinData</name>
+    <description>AvoinData</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>21</java.version>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spring.boot.version>3.3.5</spring.boot.version>
+        <org.springdoc.version>2.6.0</org.springdoc.version>
+        <com.google.guava.version>33.3.0-jre</com.google.guava.version>
+        <aws.msql.driver.version>1.1.15</aws.msql.driver.version>
+        <org.flywaydb.version>10.18.0</org.flywaydb.version>
+        <project.digitraffic-common-java.directory>lib/digitraffic-common-java</project.digitraffic-common-java.directory>
+    </properties>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <build.profile.id>dev</build.profile.id>
+            </properties>
+        </profile>
+        <profile>
+            <id>PRD</id>
+            <properties>
+                <build.profile.id>appserver</build.profile.id>
+            </properties>
+        </profile>
+        <profile>
+            <id>depcheck</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <defaultGoal>dependency-check:aggregate</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>10.0.3</version>
+                        <configuration>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                            <failBuildOnCVSS>7</failBuildOnCVSS>
+                            <suppressionFile>owasp-suppressions.xml</suppressionFile>
+                            <formats>html,xml</formats>
+                            <!-- OSS Index can be unstable -->
+                            <ossIndexWarnOnlyOnRemoteErrors>true</ossIndexWarnOnlyOnRemoteErrors>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <repositories>
+        <repository>
+            <id>repo1.maven.org</id>
+            <url>https://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
+            <id>JBoss repository</id>
+            <url>https://repository.jboss.org/nexus/content/repositories/public/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <modules>
+        <module>/AvoinDataCommon/</module>
+        <module>/AvoinDataServer/</module>
+        <module>/AvoinDataUpdater/</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <type>pom</type>
+                <version>${spring.boot.version}</version>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.validator</groupId>
+                <artifactId>hibernate-validator</artifactId>
+                <version>8.0.1.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <resource>
+                <directory>${project.basedir}/profiles/${build.profile.id}</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <overwrite>true</overwrite>
+                            <outputDirectory>${basedir}/target/classes</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../profiles/${build.profile.id}</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>init git submodules</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <executable>node</executable>
+                            <arguments>
+                                <argument>common/scripts/git-submodule-extra.mjs</argument>
+                                <argument>init</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.16.2</version>
+                <configuration>
+                    <rulesUri>file:///${maven.multiModuleProjectDirectory}/versions-maven-plugin-rules.xml</rulesUri>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>
