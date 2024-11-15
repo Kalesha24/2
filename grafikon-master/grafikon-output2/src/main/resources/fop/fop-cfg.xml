@@ -1,0 +1,54 @@
+<fop version="1.0">
+
+    <!-- Base URL for resolving relative URLs -->
+    <base>./</base>
+
+    <!-- Font Base URL for resolving relative font URLs -->
+    <font-base>./</font-base>
+    <renderers>
+        <renderer mime="application/pdf">
+            <fonts>
+                <font embed-url="fop/DejaVuSans.ttf" embedding-mode="subset">
+                    <font-triplet name="Sans" style="normal" weight="normal"/>
+                </font>
+                <font embed-url="fop/DejaVuSans-Oblique.ttf" embedding-mode="subset">
+                    <font-triplet name="Sans" style="italic" weight="normal"/>
+                </font>
+                <font embed-url="fop/DejaVuSans-Bold.ttf" embedding-mode="subset">
+                    <font-triplet name="Sans" style="normal" weight="bold"/>
+                </font>
+                <font embed-url="fop/DejaVuSans-BoldOblique.ttf" embedding-mode="subset">
+                    <font-triplet name="Sans" style="italic" weight="bold"/>
+                </font>
+                <font embed-url="fop/DejaVuSansCondensed.ttf" embedding-mode="subset">
+                    <font-triplet name="SansCondensed" style="normal" weight="normal"/>
+                    <!-- substitutions needed for pdf net view -->
+                    <font-triplet name="Dialog" style="normal" weight="normal"/>
+                    <font-triplet name="Arial" style="normal" weight="normal"/>
+                    <font-triplet name="Helvetica" style="normal" weight="normal"/>
+                </font>
+                <font embed-url="fop/DejaVuSansCondensed-Oblique.ttf" embedding-mode="subset">
+                    <font-triplet name="SansCondensed" style="italic" weight="normal"/>
+                    <!-- substitutions needed for pdf net view -->
+                    <font-triplet name="Dialog" style="italic" weight="normal"/>
+                    <font-triplet name="Arial" style="italic" weight="normal"/>
+                    <font-triplet name="Helvetica" style="italic" weight="normal"/>
+                </font>
+                <font embed-url="fop/DejaVuSansCondensed-Bold.ttf" embedding-mode="subset">
+                    <font-triplet name="SansCondensed" style="normal" weight="bold"/>
+                    <!-- substitutions needed for pdf net view -->
+                    <font-triplet name="Dialog" style="normal" weight="bold"/>
+                    <font-triplet name="Arial" style="normal" weight="bold"/>
+                    <font-triplet name="Helvetica" style="normal" weight="bold"/>
+                </font>
+                <font embed-url="fop/DejaVuSansCondensed-BoldOblique.ttf" embedding-mode="subset">
+                    <font-triplet name="SansCondensed" style="italic" weight="bold"/>
+                    <!-- substitutions needed for pdf net view -->
+                    <font-triplet name="Dialog" style="italic" weight="bold"/>
+                    <font-triplet name="Arial" style="italic" weight="bold"/>
+                    <font-triplet name="Helvetica" style="italic" weight="bold"/>
+                </font>
+            </fonts>
+        </renderer>
+    </renderers>
+</fop>

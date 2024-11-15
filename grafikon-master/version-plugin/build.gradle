@@ -1,0 +1,28 @@
+plugins {
+    id "java-gradle-plugin"
+    id "groovy"
+}
+
+group 'net.parostroj.versioning'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+    gradlePluginPortal()
+}
+
+dependencies {
+    implementation 'de.skuzzle:semantic-version:2.1.1'
+    implementation 'org.ajoberstar.grgit:grgit-gradle:5.2.2'
+    implementation 'org.ajoberstar.grgit:grgit-core:5.2.2'
+    implementation localGroovy()
+}
+
+gradlePlugin {
+    plugins {
+        publishFile {
+            id = 'net.parostroj.versioning'
+            implementationClass = 'net.parostroj.plugin.version.VersionPlugin'
+        }
+    }
+}

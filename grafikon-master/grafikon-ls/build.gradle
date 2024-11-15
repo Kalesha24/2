@@ -1,0 +1,6 @@
+dependencies {
+	api project(':grafikon-model')
+	
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+	implementation 'org.slf4j:slf4j-api'
+}

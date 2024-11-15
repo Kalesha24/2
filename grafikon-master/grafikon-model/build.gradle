@@ -1,0 +1,16 @@
+dependencies {
+	api 'org.jgrapht:jgrapht-core'
+	api 'org.apache.groovy:groovy-jsr223'
+	api 'joda-time:joda-time'
+	api 'com.google.guava:guava'
+	api 'de.skuzzle:semantic-version'
+
+	implementation 'org.slf4j:slf4j-api'
+	implementation 'org.apache.groovy:groovy-templates'
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api'
+
+	testImplementation 'org.junit.jupiter:junit-jupiter'
+	testImplementation 'org.hamcrest:hamcrest'
+
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}

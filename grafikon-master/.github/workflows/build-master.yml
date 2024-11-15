@@ -1,0 +1,20 @@
+name: Build Master Branch
+on:
+  push:
+    branches:
+      - 'master'
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Java Setup
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Gradle Build
+        uses: gradle/actions/setup-gradle@v3
+      - name: Execute Gradle Build
+        run: ./gradlew build jpackage jpackageImageZip distribution

@@ -1,0 +1,6 @@
+dependencies {
+	api project(':grafikon-gui-components')
+
+	implementation 'org.slf4j:slf4j-api'
+	implementation 'org.ini4j:ini4j'
+}

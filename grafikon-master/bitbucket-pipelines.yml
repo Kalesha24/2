@@ -1,0 +1,13 @@
+image: openjdk:17
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - gradle
+          - gradlewrapper
+        script:
+          - ./gradlew --no-watch-fs --no-daemon build
+definitions:
+  caches:
+    gradlewrapper: ~/.gradle/wrapper

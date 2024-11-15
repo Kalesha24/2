@@ -1,0 +1,11 @@
+dependencies {
+	api project(':grafikon-model')
+	api project(':grafikon-output2')
+	api project(':grafikon-templates')
+
+	api 'io.smallrye.reactive:mutiny'
+	api 'org.beanfabrics:beanfabrics-swing'
+
+	implementation 'org.swinglabs:jxlayer'
+	implementation 'com.fifesoft:rsyntaxtextarea'
+}

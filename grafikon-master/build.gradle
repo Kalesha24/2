@@ -1,0 +1,129 @@
+plugins {
+	id 'io.spring.dependency-management' apply false
+	id 'net.parostroj.versioning'
+	id 'com.github.ben-manes.versions'
+	id 'se.ascp.gradle.gradle-versions-filter'
+}
+
+def nonJavaProjectsFilter = [
+	"grafikon-assembly",
+	"grafikon-webstart"
+]
+
+def outputJavaVersion = (project.findProperty('javaVersion') ?: 11) as int
+
+subprojects { prj ->
+	apply plugin: 'io.spring.dependency-management'
+
+	group = 'net.parostroj'
+	version = scmVersion.projectVersion
+
+	repositories {
+		mavenCentral()
+	}
+
+	dependencyManagement {
+		dependencies {
+			dependency 'org.jgrapht:jgrapht-core:1.5.2', {
+				exclude 'org.apfloat:apfloat'
+			}
+			dependency 'org.apache.groovy:groovy-templates:4.0.23'
+			dependency 'org.apache.groovy:groovy-jsr223:4.0.23'
+			dependency 'org.slf4j:slf4j-api:2.0.16'
+			dependency 'org.slf4j:jcl-over-slf4j:2.0.16'
+			dependency 'joda-time:joda-time:2.13.0'
+			dependency 'com.google.guava:guava:33.3.1-jre', {
+				exclude 'com.google.code.findbugs:jsr305'
+				exclude 'com.google.j2objc:j2objc-annotations'
+				exclude 'com.google.errorprone:error_prone_annotations'
+				exclude 'org.codehaus.mojo:animal-sniffer-annotations'
+				exclude 'org.checkerframework:checker-compat-qual'
+				exclude 'org.checkerframework:checker-qual'
+				exclude 'com.google.guava:listenablefuture'
+			}
+			dependency 'org.apache.xmlgraphics:fop:2.9', {
+				exclude 'org.apache.xmlgraphics:batik-extension'
+				exclude 'commons-logging:commons-logging'
+				exclude 'org.apache.pdfbox:fontbox'
+				exclude 'xalan:xalan'
+				exclude 'xml-apis:xml-apis'
+				exclude 'javax.servlet:servlet-api'
+				exclude 'org.apache.ant:ant'
+				exclude 'javax.media:jai-core'
+				exclude 'com.sun.media:jai-codec'
+			}
+			dependency 'org.beanfabrics:beanfabrics-swing:1.4.3'
+			dependency 'org.swinglabs:jxlayer:3.0.4'
+			dependency 'com.fifesoft:rsyntaxtextarea:3.5.1'
+			dependency 'org.ini4j:ini4j:0.5.4'
+			dependency 'com.github.vlsi.mxgraph:jgraphx:4.2.2'
+			dependency 'org.apache.logging.log4j:log4j-slf4j2-impl:2.24.0'
+			dependency 'org.apache.logging.log4j:log4j-core:2.24.0'
+			dependency 'de.skuzzle:semantic-version:2.1.1'
+			dependency 'org.glassfish.jaxb:jaxb-runtime:4.0.5', {
+				exclude 'org.glassfish.jaxb:txw2'
+				exclude 'org.eclipse.angus:angus-activation'
+			}
+			dependency 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+			dependency 'org.junit.jupiter:junit-jupiter:5.11.1'
+			dependency 'org.hamcrest:hamcrest:3.0'
+			dependency 'io.smallrye.reactive:mutiny:2.6.2'
+		}
+	}
+
+	if (prj.name in nonJavaProjectsFilter) {
+		return
+	}
+
+	apply plugin: 'java-library'
+	apply plugin: 'maven-publish'
+
+	publishing {
+		publications {
+			maven(MavenPublication) {
+				from components.java
+				versionMapping {
+					usage('java-api') {
+						fromResolutionResult()
+					}
+					usage('java-runtime') {
+						fromResolutionResult()
+					}
+				}
+			}
+		}
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.release.set(outputJavaVersion)
+		options.encoding = 'utf-8'
+	}
+
+	tasks.named('test').configure {
+		useJUnitPlatform()
+	}
+
+	tasks.named('jar').configure {
+		manifest {
+			attributes(
+				"Specification-Title": prj.name,
+				"Specification-Version": scmVersion.baseVersion,
+				"Implementation-Title": prj.name,
+				"Implementation-Version-Short": scmVersion.shortVersion,
+				"Permissions": "all-permissions"
+			)
+		}
+	}
+
+	project.tasks.withType(Jar).configureEach { task ->
+		task.doFirst {
+			manifest {
+				attributes(
+					"Build-Id": scmVersion.buildId,
+					"Build-Time": scmVersion.buildTimestamp,
+					"Implementation-Version": scmVersion.distVersion,
+				)
+			}
+		}
+	}
+}

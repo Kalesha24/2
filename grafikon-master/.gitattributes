@@ -1,0 +1,9 @@
+*               text=auto
+
+*.java          text
+*.properties    text
+*.xml           text
+*.md            text
+
+*.sh            text eol=lf
+gradlew         text eol=lf
